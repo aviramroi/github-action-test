@@ -1,0 +1,22 @@
+name: master to develop
+on:
+  push:
+    branches: [main,master]
+
+jobs:
+  run-shell-command:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set Git config
+      run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "Github Actions"
+    - name: Merge master back to develop
+      run: |
+          git fetch --unshallow
+          git checkout develop
+          git pull
+          git merge --no-ff main -m "Auto-merge master back to dev"
+          git push
