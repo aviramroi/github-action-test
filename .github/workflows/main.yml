@@ -1,7 +1,7 @@
 name: master to develop
 on:
   push:
-    branches: [master]
+    branches: [main,master]
 
 jobs:
   run-shell-command:
