@@ -15,7 +15,7 @@ jobs:
           git config --local user.name "Github Actions"
     - name: Merge master back to develop
       run: |
-          git checkout devl
+          git checkout develop
           git pull
           git merge --no-ff master -m "Auto-merge master back to dev"
           git push
