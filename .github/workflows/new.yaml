@@ -1,0 +1,180 @@
+name: Deployment
+
+on:
+    push:
+
+concurrency:
+  group: deployment
+  cancel-in-progress: true
+
+jobs:
+    build_backend:
+        runs-on: ubuntu-20.04
+        steps:
+            - uses: actions/checkout@v2
+
+            # In this step, this action saves a list of existing images,
+            # the cache is created without them in the post run.
+            # It also restores the cache if it exists.
+            - uses: satackey/action-docker-layer-caching@v0.0.11
+              # Ignore the failure of a step and avoid terminating the job.
+              continue-on-error: true
+              with:
+                  key: docker-layer-caching-${{ github.workflow }}-backend-{hash}
+                  restore-keys: |
+                      docker-layer-caching-${{ github.workflow }}-backend-
+
+            - name: Configure Staging AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v1
+              with:
+                  aws-access-key-id: ${{ secrets.STAGING_AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.STAGING_AWS_SECRET_ACCESS_KEY }}
+                  aws-region: eu-central-1
+
+            - name: Build and push docker image
+              env:
+                  APP_ENV: staging
+              run: ./infrastructure/build.sh backend
+
+            - name: Configure Prod AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v1
+              with:
+                  aws-access-key-id: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
+                  aws-region: eu-central-1
+
+            - name: Build and push docker image
+              env:
+                  APP_ENV: prod
+              run: ./infrastructure/build.sh backend
+
+    build_marketplace:
+        runs-on: ubuntu-20.04
+        steps:
+            - uses: actions/checkout@v2
+
+            # Disabled for now, because the caching part takes longer than the actual build?!
+#            # In this step, this action saves a list of existing images,
+#            # the cache is created without them in the post run.
+#            # It also restores the cache if it exists.
+#            - uses: satackey/action-docker-layer-caching@v0.0.11
+#              # Ignore the failure of a step and avoid terminating the job.
+#              continue-on-error: true
+#              with:
+#                  key: docker-layer-caching-${{ github.workflow }}-marketplace-{hash}
+#                  restore-keys: |
+#                      docker-layer-caching-${{ github.workflow }}-marketplace-
+
+            - name: Configure Staging AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v1
+              with:
+                  aws-access-key-id: ${{ secrets.STAGING_AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.STAGING_AWS_SECRET_ACCESS_KEY }}
+                  aws-region: eu-central-1
+
+            - name: Build and push docker image
+              env:
+                  APP_ENV: staging
+              run: ./infrastructure/build.sh frontend-marketplace
+
+            - name: Configure Prod AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v1
+              with:
+                  aws-access-key-id: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
+                  aws-region: eu-central-1
+
+            - name: Build and push docker image
+              env:
+                  APP_ENV: prod
+              run: ./infrastructure/build.sh frontend-marketplace
+
+    build_caddy:
+        runs-on: ubuntu-20.04
+        steps:
+            - uses: actions/checkout@v2
+
+            # In this step, this action saves a list of existing images,
+            # the cache is created without them in the post run.
+            # It also restores the cache if it exists.
+            - uses: satackey/action-docker-layer-caching@v0.0.11
+              # Ignore the failure of a step and avoid terminating the job.
+              continue-on-error: true
+              with:
+                  key: docker-layer-caching-${{ github.workflow }}-caddy-{hash}
+                  restore-keys: |
+                      docker-layer-caching-${{ github.workflow }}-caddy-
+
+            - name: Configure Staging AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v1
+              with:
+                  aws-access-key-id: ${{ secrets.STAGING_AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.STAGING_AWS_SECRET_ACCESS_KEY }}
+                  aws-region: eu-central-1
+
+            - name: Build and push docker image
+              env:
+                  APP_ENV: staging
+              run: ./infrastructure/build.sh caddy
+
+            - name: Configure Prod AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v1
+              with:
+                  aws-access-key-id: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
+                  aws-region: eu-central-1
+
+            - name: Build and push docker image
+              env:
+                  APP_ENV: prod
+              run: ./infrastructure/build.sh caddy
+
+    build_control_panel:
+        runs-on: ubuntu-20.04
+        steps:
+            - uses: actions/checkout@v2
+
+            # In this step, this action saves a list of existing images,
+            # the cache is created without them in the post run.
+            # It also restores the cache if it exists.
+            - uses: satackey/action-docker-layer-caching@v0.0.11
+              # Ignore the failure of a step and avoid terminating the job.
+              continue-on-error: true
+              with:
+                  key: docker-layer-caching-${{ github.workflow }}-control_panel-{hash}
+                  restore-keys: |
+                      docker-layer-caching-${{ github.workflow }}-control_panel-
+
+            - name: Configure Staging AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v1
+              with:
+                  aws-access-key-id: ${{ secrets.STAGING_AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.STAGING_AWS_SECRET_ACCESS_KEY }}
+                  aws-region: eu-central-1
+
+            - name: Build and push docker image
+              env:
+                  APP_ENV: staging
+              run: ./infrastructure/build.sh frontend-control-panel
+
+            - name: Configure Prod AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v1
+              with:
+                  aws-access-key-id: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
+                  aws-region: eu-central-1
+
+            - name: Build and push docker image
+              env:
+                  APP_ENV: prod
+              run: ./infrastructure/build.sh frontend-control-panel
+
+    deploy:
+        runs-on: ubuntu-20.04
+        needs:
+            - build_backend
+            - build_marketplace
+            - build_caddy
+            - build_control_panel
+        steps:
+            - run: echo "Not implemented yet :)"
